@@ -1,6 +1,7 @@
 import * as esbuild from 'esbuild-wasm'
 import {useState, useEffect, useRef} from "react";
 import ReactDOM from 'react-dom';
+import { unpkgPathPlugin } from "./unpkg-path-plugin";
 
 const App = () => {
     const ref = useRef<any>()
@@ -8,7 +9,7 @@ const App = () => {
     const [input, setInput] = useState('')
     const [code, setCode] = useState('')
 
-    // we are grabbing the startService method from esbuild
+    // we are grabbing the startService method from esbuild-wasm
     const startService = async () => {
         ref.current = await esbuild.startService({
             worker: true,
@@ -27,12 +28,21 @@ const App = () => {
            return;
        }
        // using the transform from our ref to take the string from input and transpile
-       const result = await ref.current.transform(input, {
-           loader: 'jsx',
-           target: 'es2015'
+       // const result = await ref.current.transform(input, {
+       //     loader: 'jsx',
+       //     target: 'es2015'
+       // })
+
+       const result = await ref.current.build({
+           entryPoints: ['index.js'],
+           bundle: true,
+           write: false,
+           plugins: [unpkgPathPlugin()]
        })
 
-       setCode(result.code)
+
+
+       setCode(result.outputFiles[0].text)
     }
     return (
         <div>
